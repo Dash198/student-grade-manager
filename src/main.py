@@ -1,5 +1,3 @@
-class StateManager:
+import menu
 
-    def __init__(self):
-        self.fileOpen = False
-
+menu.start()
