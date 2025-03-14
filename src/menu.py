@@ -1,5 +1,6 @@
 from grade_manager import GradeManager
 from enum import Enum, auto
+import time
 
 class MenuState(Enum):
     START = auto()
@@ -22,18 +23,18 @@ class Menu:
             choice = input("Enter your choice (1-3) : ")
         
         elif self.current_state == MenuState.FILE_VIEW:
-            #print(f"FILE MENU - {self.gm.curr_file} :")
-            print("1. View grades\n2. Edit Students and Grades\n3. View Statistics\n4. Save and Exit")
+            print(f"FILE MENU - {self.gm.curr_file} :")
+            print("\n1. View grades\n2. Edit Students and Grades\n3. View Statistics\n4. Save and Exit")
             choice = input("Enter your choice (1-3) : ")
         
         elif self.current_state == MenuState.EDIT:
-            #print(f"EDITING - {self.gm.curr_file} :")
-            print("1. Add a student record\n2. Add a new subject\n3. Edit a student record\n4. Delete a student record\n5. Delete a subject\n6. Quit editing")
+            print(f"EDITING - {self.gm.curr_file} :")
+            print("\n1. Add a student record\n2. Add a new subject\n3. Edit a student record\n4. Delete a student record\n5. Delete a subject\n6. Quit editing")
             choice = input("Enter your choice (1-6) : ")
         
         elif self.current_state == MenuState.STATS:
-            #print(f"STATISTICS - {self.gm.curr_file} :")
-            print("1. View for a specific student\n2. View for a specific subject\n3. View for all students and subjects\n4. Exit")
+            print(f"STATISTICS - {self.gm.curr_file} :")
+            print("\n1. View for a specific student\n2. View for a specific subject\n3. View for all students and subjects\n4. Exit")
             choice = input("Enter your choice (1-4) : ")
         
         return int(choice)
@@ -55,6 +56,7 @@ class Menu:
 
             else:
                 print("Error: Enter a valid choice!")
+                time.sleep(1)
 
         elif self.current_state == MenuState.FILE_VIEW:
             if choice == 1:
@@ -72,6 +74,7 @@ class Menu:
             
             else:
                 print("Error: Enter a valid choice!")
+                time.sleep(1)
 
         elif self.current_state == MenuState.EDIT:
             if choice == 1:
@@ -99,6 +102,7 @@ class Menu:
             
             else:
                 print("Error: Enter a valid choice!")
+                time.sleep(1)
 
         elif self.current_state == MenuState.STATS:
             if choice == 1:
@@ -116,6 +120,10 @@ class Menu:
             elif choice == 4:
                 self.current_state = MenuState.FILE_VIEW
 
+            else:
+                print("Error: Enter a valid choice!")
+                time.sleep(1)
+
 
 
 menu = Menu()
@@ -125,4 +133,5 @@ def start():
     while menu.running:
         choice = menu.displayMenu()
         menu.processChoice(choice)
+        menu.gm.clear_screen()
 
