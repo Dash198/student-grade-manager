@@ -16,29 +16,30 @@ class GradeManager:
 
     def open_saved_file(self):
         print("Saved files found...")
-        os.listdir('./saves')
+        print(os.listdir('saves/'))
         name = input("Enter the name of the file you wish to open : ")
         self.curr_file = name
 
-        filename = "/saves/"+name
+        filename = "saves/"+name
         with open(filename,'r') as f:
             csvreader = csv.reader(f)
             fields = next(csvreader)
+            self.subjects = fields[2:]
             for row in csvreader:
                 id = row[0]
                 name = row[1]
                 grades = row[2:]
 
-                self.students[id] = student.Student(name,id,dict(self.subjects,grades))
+                self.students[id] = student.Student(name,id,dict(zip(self.subjects,grades)))
             
-            self.subjects = fields[2:]
+            
 
         print("File loaded successfully")
         pass
 
     def close_file(self):
         fields = ['ID', 'Name']
-        fields.append(self.subjects)
+        fields.extend(self.subjects)
 
         rows=[]
         for  id in self.students.keys():
@@ -49,13 +50,15 @@ class GradeManager:
                 row.append(self.students[id].grades[sub])
             rows.append(row)
 
-        filename = "/saves/" + self.curr_file
+        filename = "saves/" + self.curr_file
         with open(filename,'w') as f:
             csvwriter = csv.writer(f)
 
             csvwriter.writerow(fields)
             csvwriter.writerows(rows)
-
+        
+        self.subjects.clear()
+        self.students.clear()
         print("File saved successfully")
         pass
 
@@ -71,7 +74,7 @@ class GradeManager:
             name = input("Enter student name : ")
             grades = {}
             for sub in self.subjects:
-                grade = input(f"Enter grade for student in {sub}: ")
+                grade = int(input(f"Enter grade for student in {sub} (1-10): "))
                 grades[sub] = grade
 
             new_student = student.Student(name,id,grades)
@@ -88,7 +91,7 @@ class GradeManager:
         if subject not in self.subjects:
             self.subjects.append(subject)
             for id in self.students.keys():
-                grade = input(f"Enter the grade for student with ID {id}: ")
+                grade = int(input(f"Enter the grade for student with ID {id} (1-10): "))
                 self.students[id].grades[subject] = grade
             
             print("Successfully added "+subject)
@@ -172,9 +175,58 @@ class GradeManager:
         pass
 
     def view_student_stats(self):
+        id = input("Enter student ID to look for : ")
+        if id not in self.students.keys():
+            print("Error : Invalid student ID!")
+
+        else:
+            stud = self.students[id]
+            name = "Name".ljust(15," ")
+            id = "ID".ljust(5," ")
+            print(id,end='')
+            print(name,end='')
+            for sub in self.subjects:
+                sub = sub.ljust(5," ")
+                print(sub,end='')
+            print()
+            avg = 0
+            id = id.ljust(5," ")
+            name = stud.name.ljust(15," ")
+            print(id,end='')
+            print(name,end='')
+            for sub in self.subjects:
+                grade = str(stud.grades[sub]).ljust(5, " ")
+                avg+=int(grade)
+                print(grade,end="")
+                
+            print()
+            avg /= len(self.subjects)
+
+            print(f"Average Grade : {avg}\n")
+            _ = input("Press any key to exit...")
+            
         pass
 
     def view_subject_stats(self):
+        sub = input("Enter 3-letter code of subject : ")
+        if sub not in self.subjects:
+            print("Error: Invalid subject!")
+        else:
+
+            avg = 0
+            grade_groups = {i:0 for i in range(1,11)}
+            for id in self.students.keys():
+                score = self.students[id].grades[sub]
+                grade_groups[score] += 1
+                avg += int(score)
+
+            avg /= len(self.students)
+            print(f"Average Grade : {avg}")
+            print("Grade Distribution : ")
+            for i in grade_groups.keys():
+                print(f"{i} - {grade_groups[i]}")
+
+            _ = input("Press any key to exit")
         pass
 
     def view_overall_stats(self):
@@ -200,7 +252,7 @@ class GradeManager:
                 print(id,end='')
                 print(name,end='')
                 for sub in self.subjects:
-                    grade = stud.grades[sub].ljust(5, " ")
+                    grade = str(stud.grades[sub]).ljust(5, " ")
                     print(grade,end="")
                 
                 print()
