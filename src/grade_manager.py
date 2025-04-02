@@ -1,36 +1,40 @@
-import student
-import os, time, sys
-import csv
+import student      # Contains the Student class
+import os, time     # os for file operations and time for the delay (QOL)
+import csv          # We use CSV files for persistent storage
 
 class GradeManager:
 
-    def __init__(self):
+    def __init__(self):     # Init function which stores current file name, students and subjects
         self.curr_file = None
         self.students = {}
         self.subjects = []
     
-    def make_new_file(self):
+    def make_new_file(self):     # Function to make a new file (Note that this file is actually created ONLY once you save and exit)
         name = input("Enter the name of the file : ")
         self.curr_file = name
-        pass
 
-    def open_saved_file(self):
-        if not os.path.exists('saves') or len(os.listdir('saves/'))==0:
+    def open_saved_file(self):  # Function to open a previously saved file or another CSV
+        if not os.path.exists('saves') or len(os.listdir('saves/'))==0:     # Checking if the 'saves' directory exists and is non-empty
             print('No save files found!')
             time.sleep(1)
             return
+        
         print("Saved files found...\n")
         save_files = os.listdir('saves/')
         for file in save_files:
             print(file)
         name = input("\nEnter the name of the file you wish to open : ")
-        if name not in save_files:
+
+        if name not in save_files:      # Another check to see if the file is in the given list
             print("Error: File does not exist!")
             time.sleep(1)
             return False
+        
         self.curr_file = name
 
         filename = "saves/"+name
+
+        # Load everything into the the students dictionary and subjects list
         with open(filename,'r') as f:
             csvreader = csv.reader(f)
             fields = next(csvreader)
@@ -41,15 +45,16 @@ class GradeManager:
                 grades = row[2:]
 
                 self.students[id] = student.Student(name,id,dict(zip(self.subjects,grades)))
-            
-            
 
         print("File loaded successfully")
         return True
 
     def close_file(self):
-        if not os.path.exists('saves'):
+
+        if not os.path.exists('saves'):     # If the 'saves' directory doesn't exist, make it
             os.makedirs('saves')
+
+        # Put all data in the form of a list of list of objects 
         fields = ['ID', 'Name']
         fields.extend(self.subjects)
 
@@ -62,6 +67,7 @@ class GradeManager:
                 row.append(self.students[id].grades[sub])
             rows.append(row)
 
+        # Write to the file
         filename = "saves/" + self.curr_file
         with open(filename,'w') as f:
             csvwriter = csv.writer(f)
@@ -74,14 +80,18 @@ class GradeManager:
         print("File saved successfully")
         pass
 
-    def clear_screen(self):
+    def clear_screen(self):     # Function to clear the screen after a process is done (QOL)
         if os.name=='nt':
             _ = os.system('cls')
         else:
             _ = os.system('clear')
 
-    def add_new_record(self):
+    def add_new_record(self):       # Function to add a new record
+
+        # Take all the necesarry field inputs from the user, note that the grade can be any number!
         id = input("Enter student ID : ")
+
+        # Students must have unique ID
         if id not in self.students.keys():
             name = input("Enter student name : ")
             grades = {}
@@ -96,13 +106,17 @@ class GradeManager:
             print("Error: Student ID already exists!")
 
         time.sleep(1)
-        pass
 
-    def add_new_subject(self):
-        subject = input("Enter 3-letter code for subject to add: ")
+    def add_new_subject(self):      # Function to add a new subject
+
+        subject = input("Enter 3-letter code for subject to a        passdd: ")
+
+        # Again, subject must be unique
         if subject not in self.subjects:
             self.subjects.append(subject)
             for id in self.students.keys():
+
+                # Manual assignment of grade for each of the existing students
                 grade = int(input(f"Enter the grade for student with ID {id} (1-10 or any other value depending on your system): "))
                 self.students[id].grades[subject] = grade
             
@@ -111,13 +125,16 @@ class GradeManager:
             print("Error: Subject already exists!")
         
         time.sleep(1)
-        pass
 
-    def edit_student_record(self):
+    def edit_student_record(self):      # Function to edit an existing student record
+
+
         id = input("Enter the ID of the student you wish to edit : ")
+
         if id not in self.students.keys():
             print("Error: No such student exists!")
         
+        # The ID, Name and grades can be edited, but the ID must be unique again
         else:
             print("Press one of the following numbers:")
             print("1. Edit ID")
@@ -154,9 +171,9 @@ class GradeManager:
                 print("Error: Invalid choice!")
 
         time.sleep(1)
-        pass
 
-    def delete_student_record(self):
+    def delete_student_record(self):        # Function to delete a student record
+
         if len(self.students) == 0:
             print("Error: No records to delete!")
         else:
@@ -170,9 +187,9 @@ class GradeManager:
                 print("Error: No such ID exists!")
         
         time.sleep(1)
-        pass
 
-    def delete_subject(self):
+    def delete_subject(self):       # Function to delete a subject field
+
         subject = input("Enter 3-letter code for subject to remove: ")
         if subject not in self.subjects:
             print("Error: No such subject exists!")
@@ -184,9 +201,9 @@ class GradeManager:
             print("Successfully removed subject "+subject)
 
         time.sleep(1)
-        pass
 
-    def view_student_stats(self):
+    def view_student_stats(self):       # Function to view the stats of a student, namely all scores and average score
+
         id = input("Enter student ID to look for : ")
         if id not in self.students.keys():
             print("Error : Invalid student ID!")
@@ -194,19 +211,23 @@ class GradeManager:
 
         else:
             stud = self.students[id]
+
             name = "Name".ljust(15," ")
             id = "ID".ljust(5," ")
             print(id,end='')
             print(name,end='')
+
             for sub in self.subjects:
                 sub = sub.ljust(5," ")
                 print(sub,end='')
             print()
+
             avg = 0
             id = id.ljust(5," ")
             name = stud.name.ljust(15," ")
             print(id,end='')
             print(name,end='')
+
             for sub in self.subjects:
                 grade = str(stud.grades[sub]).ljust(5, " ")
                 avg+=int(grade)
@@ -217,18 +238,19 @@ class GradeManager:
 
             print(f"Average Grade : {round(avg,2)}\n")
             _ = input("Press any key to exit...")
-            
-        pass
 
-    def view_subject_stats(self):
+    def view_subject_stats(self):       # Function to view the stats for a subject, namely the average score, the score distribution and the top scorers (3 or less)
+
         if len(self.students) == 0:
             print("No students in system!")
             time.sleep(1)
             return
+        
         sub = input("Enter 3-letter code of subject : ")
         if sub not in self.subjects:
             print("Error: Invalid subject!")
             time.sleep(1)
+
         else:
 
             avg = 0
@@ -258,6 +280,7 @@ class GradeManager:
             grade = "Grade".ljust(15," ")
             print(grade,end='')
             print()
+
             for i in range(min(len(scores),3)):
                 id = scores[i][1]
                 grade = scores[i][0]
@@ -272,28 +295,28 @@ class GradeManager:
 
             _ = input("Press any key to exit...")
 
-    def view_overall_stats(self):
+    def view_overall_stats(self):       # Function to display Overall Stats, i.e, the average, highest and lowest grade in each subject and top scorers (top 3 or less)
 
         if len(self.students) == 0:
             print("No students in system!")
             time.sleep(1)
             return
 
-        def calcAvg(lst):
-            sum = 0
+        def calcAvg(lst):           # Helper function to calculate average grade
+            sum = 0 
             for x in lst:
                 sum += int(x)
 
             return round((sum/len(lst)),2)
 
-        def calcHighest(lst):
+        def calcHighest(lst):       # Helper function to calculate highest grade
             highest = 0
             for x in lst:
                 highest = max(highest, int(x))
             
             return highest
-        
-        def calcLowest(lst):
+
+        def calcLowest(lst):        # Helper function to calculate lowest grade
             lowest = -1
             for x in lst:
                 if lowest == -1:
@@ -304,21 +327,26 @@ class GradeManager:
 
             return lowest
         
-        all_sub_scores = {}
+        # A dictionary to store all the scores subjectwise
+        all_sub_scores = {}     
         for sub in self.subjects:
             all_sub_scores[sub] = []
             for id in self.students.keys():
                 all_sub_scores[sub].append(self.students[id].grades[sub])
         
+        # Dictionary to store all the scores student-wise
         all_student_scores = {}
         for student_id in self.students.keys():
             all_student_scores[student_id] = []
             for sub in self.subjects:
                 all_student_scores[student_id].append(self.students[student_id].grades[sub])
 
+        # Store and sort the avg grade of the students
         avg_student_grades = [(calcAvg(all_student_scores[id]),id) for id in self.students.keys()]
         avg_student_grades.sort(reverse=True)
 
+
+        # Print everything!
         print("Overall Statistics:\n")
 
         name = "Statistic".ljust(15," ")
@@ -357,6 +385,7 @@ class GradeManager:
         grade = "Avg. Grade".ljust(15," ")
         print(grade,end='')
         print()
+
         for i in range(min(len(all_student_scores),3)):
             id = avg_student_grades[i][1]
             grade = avg_student_grades[i][0]
@@ -371,9 +400,8 @@ class GradeManager:
 
 
         _ = input("Press any key to exit...")
-        pass
-
-    def view_grades(self):
+    
+    def view_grades(self):              # Function to view all the grades
         if len(self.students) == 0:
             print("Error: No records to view!")
         else:
@@ -381,17 +409,20 @@ class GradeManager:
             id = "ID".ljust(5," ")
             print(id,end='')
             print(name,end='')
+
             for sub in self.subjects:
                 sub = sub.ljust(5," ")
                 print(sub,end='')
             print()
 
             for id in self.students.keys():
+
                 stud = self.students[id]
                 id = id.ljust(5," ")
                 name = stud.name.ljust(15," ")
                 print(id,end='')
                 print(name,end='')
+
                 for sub in self.subjects:
                     grade = str(stud.grades[sub]).ljust(5, " ")
                     print(grade,end="")
@@ -399,5 +430,4 @@ class GradeManager:
                 print()
             
         _ = input("Press any key to exit...")
-        pass
 

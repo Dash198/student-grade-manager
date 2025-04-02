@@ -1,8 +1,8 @@
-from grade_manager import GradeManager
-from enum import Enum, auto
-import time
+from grade_manager import GradeManager      # GradeManager handles all most/all of the commands
+from enum import Enum, auto                 # Library to manage different Menu states
+import time         # To add some delay before switching
 
-class MenuState(Enum):
+class MenuState(Enum):      # Enumeration which defines the diffferent types of printable menu states
     START = auto()
     FILE_VIEW = auto()
     EDIT = auto()
@@ -10,12 +10,12 @@ class MenuState(Enum):
 
 class Menu:
 
-    def __init__(self):
+    def __init__(self):             # Init function
         self.current_state = MenuState.START
         self.running = True
         self.gm = GradeManager()
     
-    def displayMenu(self):
+    def displayMenu(self):          # Function which displays the current menu depending on its state
 
         if self.current_state == MenuState.START:
             print("MENU:")
@@ -40,7 +40,7 @@ class Menu:
 
         return choice
     
-    def processChoice(self,choice):
+    def processChoice(self,choice):     # Processor function which calls the appropriate function
 
         try:
             choice = int(choice)
@@ -134,11 +134,12 @@ class Menu:
                 time.sleep(1)
 
 
-
+# Menu object
 menu = Menu()
 
 def start():
 
+    # This loop of take input, process, update runs as long as we don't exit
     while menu.running:
         choice = menu.displayMenu()
         menu.processChoice(choice)
