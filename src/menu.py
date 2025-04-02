@@ -20,26 +20,35 @@ class Menu:
         if self.current_state == MenuState.START:
             print("MENU:")
             print("\n1. Make a new grade file\n2. Open a saved grade file\n3. Exit")
-            choice = input("Enter your choice (1-3) : ")
+            choice = input("\nEnter your choice (1-3) : ")
         
         elif self.current_state == MenuState.FILE_VIEW:
             print(f"FILE MENU - {self.gm.curr_file} :")
             print("\n1. View grades\n2. Edit Students and Grades\n3. View Statistics\n4. Save and Exit")
-            choice = input("Enter your choice (1-3) : ")
+            choice = input("\nEnter your choice (1-3) : ")
         
         elif self.current_state == MenuState.EDIT:
             print(f"EDITING - {self.gm.curr_file} :")
             print("\n1. Add a student record\n2. Add a new subject\n3. Edit a student record\n4. Delete a student record\n5. Delete a subject\n6. Quit editing")
-            choice = input("Enter your choice (1-6) : ")
+            choice = input("\nEnter your choice (1-6) : ")
         
         elif self.current_state == MenuState.STATS:
             print(f"STATISTICS - {self.gm.curr_file} :")
             print("\n1. View for a specific student\n2. View for a specific subject\n3. View for all students and subjects\n4. Exit")
-            choice = input("Enter your choice (1-4) : ")
-        
-        return int(choice)
+            choice = input("\nEnter your choice (1-4) : ")
+        print()
+
+        return choice
     
     def processChoice(self,choice):
+
+        try:
+            choice = int(choice)
+        
+        except ValueError:
+            print("Error: Invalid Choice!")
+            time.sleep(1)
+            return
 
         if self.current_state == MenuState.START:
 
@@ -48,8 +57,8 @@ class Menu:
                 self.current_state = MenuState.FILE_VIEW
             
             elif choice == 2:
-                self.gm.open_saved_file()
-                self.current_state = MenuState.FILE_VIEW
+                if self.gm.open_saved_file():
+                    self.current_state = MenuState.FILE_VIEW
             
             elif choice == 3:
                 self.running = False

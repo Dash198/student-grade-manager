@@ -1,5 +1,5 @@
 import student
-import os, time
+import os, time, sys
 import csv
 
 class GradeManager:
@@ -15,9 +15,19 @@ class GradeManager:
         pass
 
     def open_saved_file(self):
-        print("Saved files found...")
-        print(os.listdir('saves/'))
-        name = input("Enter the name of the file you wish to open : ")
+        if not os.path.exists('saves') or len(os.listdir('saves/'))==0:
+            print('No save files found!')
+            time.sleep(1)
+            return
+        print("Saved files found...\n")
+        save_files = os.listdir('saves/')
+        for file in save_files:
+            print(file)
+        name = input("\nEnter the name of the file you wish to open : ")
+        if name not in save_files:
+            print("Error: File does not exist!")
+            time.sleep(1)
+            return False
         self.curr_file = name
 
         filename = "saves/"+name
@@ -35,9 +45,11 @@ class GradeManager:
             
 
         print("File loaded successfully")
-        pass
+        return True
 
     def close_file(self):
+        if not os.path.exists('saves'):
+            os.makedirs('saves')
         fields = ['ID', 'Name']
         fields.extend(self.subjects)
 
@@ -74,7 +86,7 @@ class GradeManager:
             name = input("Enter student name : ")
             grades = {}
             for sub in self.subjects:
-                grade = int(input(f"Enter grade for student in {sub} (1-10): "))
+                grade = int(input(f"Enter grade for student in {sub} (1-10, or any number according to your grading system): "))
                 grades[sub] = grade
 
             new_student = student.Student(name,id,grades)
@@ -91,7 +103,7 @@ class GradeManager:
         if subject not in self.subjects:
             self.subjects.append(subject)
             for id in self.students.keys():
-                grade = int(input(f"Enter the grade for student with ID {id} (1-10): "))
+                grade = int(input(f"Enter the grade for student with ID {id} (1-10 or any other value depending on your system): "))
                 self.students[id].grades[subject] = grade
             
             print("Successfully added "+subject)
@@ -178,6 +190,7 @@ class GradeManager:
         id = input("Enter student ID to look for : ")
         if id not in self.students.keys():
             print("Error : Invalid student ID!")
+            time.sleep(1)
 
         else:
             stud = self.students[id]
@@ -202,34 +215,162 @@ class GradeManager:
             print()
             avg /= len(self.subjects)
 
-            print(f"Average Grade : {avg}\n")
+            print(f"Average Grade : {round(avg,2)}\n")
             _ = input("Press any key to exit...")
             
         pass
 
     def view_subject_stats(self):
+        if len(self.students) == 0:
+            print("No students in system!")
+            time.sleep(1)
+            return
         sub = input("Enter 3-letter code of subject : ")
         if sub not in self.subjects:
             print("Error: Invalid subject!")
+            time.sleep(1)
         else:
 
             avg = 0
-            grade_groups = {i:0 for i in range(1,11)}
+            grade_groups = {str(i):0 for i in range(1,11)}
+            scores=[]
             for id in self.students.keys():
                 score = self.students[id].grades[sub]
                 grade_groups[score] += 1
                 avg += int(score)
+                scores.append((int(score),id))
+
+            scores.sort(reverse=True)
 
             avg /= len(self.students)
-            print(f"Average Grade : {avg}")
+            print(f"Average Grade : {round(avg,2)}")
             print("Grade Distribution : ")
             for i in grade_groups.keys():
-                print(f"{i} - {grade_groups[i]}")
+                if grade_groups[i] != 0:
+                    print(f"{i} - {grade_groups[i]}")
+            print()
 
-            _ = input("Press any key to exit")
-        pass
+            print("Top Scorers:")
+            name = "Name".ljust(15," ")
+            id = "ID".ljust(5," ")
+            print(id,end='')
+            print(name,end='')
+            grade = "Grade".ljust(15," ")
+            print(grade,end='')
+            print()
+            for i in range(min(len(scores),3)):
+                id = scores[i][1]
+                grade = scores[i][0]
+                name = self.students[id].name
+                name = name.ljust(15," ")
+                id = id.ljust(5," ")
+                grade = str(grade).ljust(5," ")
+                print(id,end='')
+                print(name,end='')
+                print(grade,end='')
+                print()
+
+            _ = input("Press any key to exit...")
 
     def view_overall_stats(self):
+
+        if len(self.students) == 0:
+            print("No students in system!")
+            time.sleep(1)
+            return
+
+        def calcAvg(lst):
+            sum = 0
+            for x in lst:
+                sum += int(x)
+
+            return round((sum/len(lst)),2)
+
+        def calcHighest(lst):
+            highest = 0
+            for x in lst:
+                highest = max(highest, int(x))
+            
+            return highest
+        
+        def calcLowest(lst):
+            lowest = -1
+            for x in lst:
+                if lowest == -1:
+                    lowest = int(x)
+
+                else:
+                    lowest = min(lowest, int(x))
+
+            return lowest
+        
+        all_sub_scores = {}
+        for sub in self.subjects:
+            all_sub_scores[sub] = []
+            for id in self.students.keys():
+                all_sub_scores[sub].append(self.students[id].grades[sub])
+        
+        all_student_scores = {}
+        for student_id in self.students.keys():
+            all_student_scores[student_id] = []
+            for sub in self.subjects:
+                all_student_scores[student_id].append(self.students[student_id].grades[sub])
+
+        avg_student_grades = [(calcAvg(all_student_scores[id]),id) for id in self.students.keys()]
+        avg_student_grades.sort(reverse=True)
+
+        print("Overall Statistics:\n")
+
+        name = "Statistic".ljust(15," ")
+        print(name,end='')
+        for sub in self.subjects:
+            sub = sub.ljust(5," ")
+            print(sub,end='')
+        print()
+
+        name = "Avg. Grade".ljust(15," ")
+        print(name,end='')
+        for sub in self.subjects:
+            avg = str(calcAvg(all_sub_scores[sub])).ljust(5," ")
+            print(avg,end='')
+        print()
+
+        name = "Highest Grade".ljust(15," ")
+        print(name,end='')
+        for sub in self.subjects:
+            avg = str(calcHighest(all_sub_scores[sub])).ljust(5," ")
+            print(avg,end='')
+        print()
+
+        name = "Lowest Grade".ljust(15," ")
+        print(name,end='')
+        for sub in self.subjects:
+            avg = str(calcLowest(all_sub_scores[sub])).ljust(5," ")
+            print(avg,end='')
+        print('\n')
+
+        print("Top Scorers:")
+        name = "Name".ljust(15," ")
+        id = "ID".ljust(5," ")
+        print(id,end='')
+        print(name,end='')
+        grade = "Avg. Grade".ljust(15," ")
+        print(grade,end='')
+        print()
+        for i in range(min(len(all_student_scores),3)):
+            id = avg_student_grades[i][1]
+            grade = avg_student_grades[i][0]
+            name = self.students[id].name
+            name = name.ljust(15," ")
+            id = id.ljust(5," ")
+            grade = str(grade).ljust(5," ")
+            print(id,end='')
+            print(name,end='')
+            print(grade,end='')
+            print()
+
+
+        _ = input("Press any key to exit...")
         pass
 
     def view_grades(self):
